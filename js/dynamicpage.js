@@ -1,5 +1,7 @@
 $(function() {
 
+    if(Modernizr.history){
+
     var newHash      = "",
         $mainContent = $("#main-content"),
         $pageWrap    = $("#page-wrap"),
@@ -10,32 +12,35 @@ $(function() {
     baseHeight = $pageWrap.height() - $mainContent.height();
     
     $("nav").delegate("a", "click", function() {
-        window.location.hash = $(this).attr("href");
+        _link = $(this).attr("href");
+        history.pushState(null, null, _link);
+        loadContent(_link);
         return false;
     });
-    
-    $(window).bind('hashchange', function(){
-    
-        newHash = window.location.hash.substring(1);
-        
-        if (newHash) {
-            $mainContent
+
+    function loadContent(href){
+        $mainContent
                 .find("#guts")
                 .fadeOut(200, function() {
-                    $mainContent.hide().load(newHash + " #guts", function() {
+                    $mainContent.hide().load(href + " #guts", function() {
                         $mainContent.fadeIn(200, function() {
                             $pageWrap.animate({
                                 height: baseHeight + $mainContent.height() + "px"
                             });
                         });
                         $("nav a").removeClass("current");
-                        $("nav a[href="+newHash+"]").addClass("current");
+                        console.log(href);
+                        $("nav a[href$="+href+"]").addClass("current");
                     });
                 });
-        };
-        
-    });
+    }
     
-    $(window).trigger('hashchange');
+    $(window).bind('popstate', function(){
+       _link = location.pathname.replace(/^.*[\\\/]/, ''); //get filename only
+       loadContent(_link);
+    });
 
+} // otherwise, history is not supported, so nothing fancy here.
+
+    
 });
